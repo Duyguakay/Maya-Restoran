@@ -1,11 +1,16 @@
 <!DOCTYPE html>
 <html lang="tr">
+
 <head>
     <meta charset="UTF-8">
     <title>MAYA | Panel</title>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=DM+Sans:wght@400;500&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
+
 <body>
     <aside class="sidebar">
         <div class="logo">
@@ -22,32 +27,118 @@
     </aside>
 
     <main class="main">
-        <h1 style="font-family: 'Playfair Display'; color: var(--gold); text-align: center; margin-bottom: 30px;">MAYA RESTORAN</h1>
-        
-        <div class="card">
-            <h3 style="color: var(--gold); margin-bottom: 20px;">Canlı Masa Durumu</h3>
-            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 12px;">
-                {% for m in masalar %}
-                <div class="table-slot {{ m.durum }}" style="padding: 15px; text-align: center;">
-                    <div style="font-size: 20px; color: var(--gold);">{{ m.Masa_ID }}</div>
-                    <div style="font-size: 10px; color: var(--muted);">{{ m.Konum }}</div>
+        <h1 style="font-family: 'Playfair Display'; color: var(--gold); text-align: center; margin-bottom: 30px;">MAYA
+            RESTORAN</h1>
+
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 40px;">
+            <div class="card" style="text-align: center; border-left: 4px solid var(--gold);">
+                <div style="color: var(--muted); font-size: 14px; margin-bottom: 8px;">Toplam Masa</div>
+                <div style="font-size: 24px; font-weight: bold;">{{ masalar|length }}</div>
+            </div>
+            <div class="card" style="text-align: center; border-left: 4px solid var(--success);">
+                <div style="color: var(--muted); font-size: 14px; margin-bottom: 8px;">Şu An Boş</div>
+                <div style="font-size: 24px; font-weight: bold; color: var(--success);">
+                    {{ masalar|selectattr('durum', 'equalto', 'bos')|list|length }}
                 </div>
-                {% endfor %}
+            </div>
+            <div class="card" style="text-align: center; border-left: 4px solid var(--danger);">
+                <div style="color: var(--muted); font-size: 14px; margin-bottom: 8px;">Bugünkü Rezervasyon</div>
+                <div style="font-size: 24px; font-weight: bold; color: var(--danger);">
+                    {{ masalar|selectattr('durum', 'equalto', 'rezerve')|list|length }}
+                </div>
             </div>
         </div>
 
         <div class="card">
-            <h3 style="color: var(--gold);">Hızlı Rezervasyon</h3>
-            <form action="/rezervasyon-olustur" method="POST" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 15px;">
-                <input type="text" name="ad" placeholder="Ad" required style="padding: 12px; background: #0d0d0b; border: 1px solid #333; color: white; border-radius: 6px;">
-                <input type="text" name="soyad" placeholder="Soyad" required style="padding: 12px; background: #0d0d0b; border: 1px solid #333; color: white; border-radius: 6px;">
-                <input type="text" name="telefon" placeholder="Telefon" required style="padding: 12px; background: #0d0d0b; border: 1px solid #333; color: white; border-radius: 6px;">
-                <input type="date" name="tarih" required style="padding: 12px; background: #0d0d0b; border: 1px solid #333; color: white; border-radius: 6px;">
-                <input type="time" name="saat" required style="padding: 12px; background: #0d0d0b; border: 1px solid #333; color: white; border-radius: 6px;">
-                <input type="number" name="masa_id" placeholder="Masa No" required style="padding: 12px; background: #0d0d0b; border: 1px solid #333; color: white; border-radius: 6px;">
-                <button type="submit" style="grid-column: span 3; background: var(--gold); color: black; border: none; padding: 15px; border-radius: 6px; font-weight: bold; cursor: pointer;">Rezervasyonu Tamamla</button>
+            <h2 style="font-family: 'Playfair Display'; color: var(--gold); margin-bottom: 20px;">📅 Hızlı Rezervasyon
+                Oluştur</h2>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            {% for category, message in messages %}
+
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+
+            <form id="rezervasyonForm" action="/rezervasyon-olustur" method="POST"
+                style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;">
+                <input type="text" name="ad" placeholder="Ad" required
+                    style="padding: 12px; background: #0d0d0b; border: 1px solid #333; color: white; border-radius: 6px;">
+                <input type="text" name="soyad" placeholder="Soyad" required
+                    style="padding: 12px; background: #0d0d0b; border: 1px solid #333; color: white; border-radius: 6px;">
+                <input type="text" name="telefon" placeholder="Telefon" required
+                    style="padding: 12px; background: #0d0d0b; border: 1px solid #333; color: white; border-radius: 6px;">
+                <input type="date" name="tarih" required
+                    style="padding: 12px; background: #0d0d0b; border: 1px solid #333; color: white; border-radius: 6px;">
+                <input type="time" name="saat" required
+                    style="padding: 12px; background: #0d0d0b; border: 1px solid #333; color: white; border-radius: 6px;">
+                <input type="number" id="kisi_sayisi" name="kisi_sayisi" placeholder="Kişi Sayısı" min="1" required
+                    style="padding: 12px; background: #0d0d0b; border: 1px solid #333; color: white; border-radius: 6px;">
+                <input type="number" id="masa_id" name="masa_id" placeholder="Masa No" required
+                    style="padding: 12px; background: #0d0d0b; border: 1px solid #333; color: white; border-radius: 6px;">
+
+                <button type="submit"
+                    style="grid-column: span 3; padding: 15px; background: var(--gold); border: none; color: black; font-weight: bold; border-radius: 6px; cursor: pointer; transition: 0.3s;">
+                    REZERVASYONU KAYDET
+                </button>
             </form>
         </div>
+
+        <h2 style="font-family: 'Playfair Display'; color: var(--gold); margin: 30px 0 20px;">🪑 Kat Planı & Masa
+            Durumları</h2>
+        <div class="tables-grid">
+            {% for m in masalar %}
+            <div class="table-slot {{ m.durum }}">
+                <div style="font-size: 12px; color: var(--muted);">MASA</div>
+                <div style="font-size: 24px; font-weight: bold; font-family: 'Playfair Display';">{{ m.Masa_ID }}</div>
+                <div style="font-size: 10px; margin-top: 5px; text-transform: uppercase; letter-spacing: 1px;">
+                    {{ m.durum }}
+                </div>
+                <div style="font-size: 9px; color: var(--muted); margin-top: 4px;">Kap: {{ m.Kapasite }}</div>
+            </div>
+            {% endfor %}
+        </div>
     </main>
+
+    <script>
+        document.getElementById('rezervasyonForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+            const kisiSayisi = parseInt(formData.get('kisi_sayisi'));
+            const masaId = formData.get('masa_id');
+
+            try {
+                const response = await fetch(`/kapasite-kontrol?masa_id=${masaId}&kisi=${kisiSayisi}`);
+                const data = await response.json();
+
+                if (!data.uygun) {
+                    Swal.fire({
+                        title: 'Kapasite Yetersiz!',
+                        text: `Seçtiğiniz masa ${data.kapasite} kişiliktir. ${kisiSayisi} kişi için ek masa rezerve edilmesi gerekiyor. Devam etmek istiyor musunuz?`,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#c9a84c',
+                        cancelButtonColor: '#c0453a',
+                        confirmButtonText: 'Evet, Ek Masa Ayarla',
+                        cancelButtonText: 'İptal',
+                        background: '#151512',
+                        color: '#f0ece2'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            this.submit();
+                        }
+                    });
+                } else {
+                    this.submit();
+                }
+            } catch (error) {
+                console.error("Hata:", error);
+                this.submit();
+            }
+        });
+    </script>
 </body>
+
 </html>

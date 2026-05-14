@@ -1,11 +1,15 @@
 <!DOCTYPE html>
 <html lang="tr">
+
 <head>
     <meta charset="UTF-8">
     <title>Masalar | Maya</title>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=DM+Sans:wght@400;500&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
+
 <body>
     <aside class="sidebar">
         <div class="logo">
@@ -26,7 +30,8 @@
         <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px;">
             {% for m in masalar %}
             <div class="card" style="text-align: center;">
-                <div style="font-family: 'Playfair Display'; font-size: 22px; color: #c9a84c;">Masa #{{ m.Masa_ID }}</div>
+                <div style="font-family: 'Playfair Display'; font-size: 22px; color: #c9a84c;">Masa #{{ m.Masa_ID }}
+                </div>
                 <div style="color: #8a8778; font-size: 13px; margin: 10px 0;">{{ m.Konum }}</div>
                 <div style="font-size: 12px; font-weight: bold;">{{ m.Kapasite }} Kişilik</div>
             </div>
@@ -34,4 +39,5 @@
         </div>
     </main>
 </body>
+
 </html>

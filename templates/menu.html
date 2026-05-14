@@ -1,11 +1,15 @@
 <!DOCTYPE html>
 <html lang="tr">
+
 <head>
     <meta charset="UTF-8">
     <title>Menü | Maya</title>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=DM+Sans:wght@400;500&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
+
 <body>
     <aside class="sidebar">
         <div class="logo">
@@ -26,17 +30,22 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Ürün ID</th>
+                        <th>ID</th>
                         <th>Ürün Adı</th>
-                        <th>Birim Fiyat</th>
+                        <th>Fiyat</th>
+                        <th>Açıklama</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for u in urunler %}
                     <tr>
-                        <td style="color: var(--muted);">#U-{{ u.Urun_Id }}</td>
+                        <td style="color: var(--muted);">#{{ u.Urun_ID }}</td>
+
                         <td style="font-weight: 500;">{{ u.Urun_Adi }}</td>
+
                         <td style="font-weight: bold; color: var(--gold);">₺{{ u.Fiyat }}</td>
+
+                        <td style="font-size: 13px; color: var(--text); opacity: 0.8;">{{ u.Aciklama }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -44,4 +53,5 @@
         </div>
     </main>
 </body>
+
 </html>

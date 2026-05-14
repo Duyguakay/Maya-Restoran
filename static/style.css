@@ -11,7 +11,11 @@
     --radius: 12px;
 }
 
-* { margin: 0; padding: 0; box-sizing: border-box; }
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
 
 body {
     font-family: 'DM Sans', sans-serif;
@@ -33,9 +37,23 @@ body {
     z-index: 100;
 }
 
-.logo { padding: 30px 25px; border-bottom: 1px solid var(--border); }
-.logo-name { font-family: 'Playfair Display', serif; font-size: 24px; color: var(--gold); }
-.logo-sub { font-size: 10px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; }
+.logo {
+    padding: 30px 25px;
+    border-bottom: 1px solid var(--border);
+}
+
+.logo-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 24px;
+    color: var(--gold);
+}
+
+.logo-sub {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
 
 .nav-item {
     display: flex;
@@ -48,13 +66,18 @@ body {
     font-size: 14px;
 }
 
-.nav-item:hover, .nav-item.active {
+.nav-item:hover,
+.nav-item.active {
     background: rgba(201, 168, 76, 0.1);
     color: var(--gold);
 }
 
 /* ANA ALAN */
-.main { flex: 1; margin-left: 240px; padding: 40px; }
+.main {
+    flex: 1;
+    margin-left: 240px;
+    padding: 40px;
+}
 
 .card {
     background: var(--surface);
@@ -80,10 +103,13 @@ body {
     align-items: center;
     justify-content: center;
     background: var(--surface2);
-    transition: border-color 0.3s, background 0.3s; /* Büyüme (scale) kaldırıldı */
+    transition: border-color 0.3s, background 0.3s;
+    /* Büyüme (scale) kaldırıldı */
 }
 
-.table-slot.bos { opacity: 0.6; }
+.table-slot.bos {
+    opacity: 0.6;
+}
 
 .table-slot.dolu {
     border: 2px solid var(--gold) !important;
@@ -96,6 +122,22 @@ body {
 }
 
 /* TABLO TASARIMI */
-table { width: 100%; border-collapse: collapse; }
-th { text-align: left; padding: 15px; color: var(--muted); font-size: 11px; text-transform: uppercase; border-bottom: 1px solid var(--border); }
-td { padding: 15px; border-bottom: 1px solid var(--border); font-size: 14px; }
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th {
+    text-align: left;
+    padding: 15px;
+    color: var(--muted);
+    font-size: 11px;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+}
+
+td {
+    padding: 15px;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+}
