@@ -1,21 +1,38 @@
 <!DOCTYPE html>
 <html lang="tr">
-
 <head>
     <meta charset="UTF-8">
-    <title>Menü | Maya</title>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=DM+Sans:wght@400;500&display=swap"
-        rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <title>Menü Yönetimi | MAYA</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #0d0d0b; --surface: #151512; --border: rgba(255,255,255,0.07); --gold: #c9a84c; --text: #f0ece2; --muted: #8a8778; --radius: 12px; }
+        body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; }
+        
+        .sidebar { width: 240px; background: var(--surface); height: 100vh; position: fixed; border-right: 1px solid var(--border); }
+        .nav-item { display: flex; align-items: center; gap: 10px; padding: 15px; color: var(--muted); text-decoration: none; transition: 0.3s; }
+        .nav-item:hover, .nav-item.active { color: var(--gold); background: rgba(201,168,76,0.1); }
+        
+        .main { flex: 1; margin-left: 240px; padding: 40px; }
+        .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 25px; margin-bottom: 30px; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th { text-align: left; color: var(--muted); padding: 15px; border-bottom: 1px solid var(--border); font-size: 13px; letter-spacing: 1px; }
+        td { padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.03); }
+        
+        input { background: #0d0d0b; border: 1px solid #333; color: white; padding: 10px; border-radius: 6px; outline: none; }
+        input:focus { border-color: var(--gold); }
+        
+        .btn-gold { background: var(--gold); color: black; border: none; padding: 10px 25px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .btn-gold:hover { background: #e8c97a; transform: translateY(-2px); }
+        
+        .alert { padding: 15px; border-radius: 8px; margin-bottom: 20px; color: white; }
+        .alert-success { background-color: #4a9e6b; }
+        .alert-danger { background-color: #c0453a; }
+    </style>
 </head>
-
 <body>
     <aside class="sidebar">
-        <div class="logo">
-            <div class="logo-name">MAYA</div>
-            <div class="logo-sub">Yönetim Sistemi</div>
-        </div>
+        <div style="padding: 30px; font-family: 'Playfair Display'; font-size: 28px; color: var(--gold);">MAYA</div>
         <nav>
             <a href="/" class="nav-item">📊 Genel Bakış</a>
             <a href="/masalar" class="nav-item">🪑 Masalar</a>
@@ -24,28 +41,57 @@
             <a href="/siparisler" class="nav-item">🧾 Siparişler</a>
         </nav>
     </aside>
+
     <main class="main">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }}">
+                {{ message }}
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <h1 style="font-family: 'Playfair Display'; color: var(--gold); font-size: 36px; margin-bottom: 30px;">Menü Yönetimi</h1>
+
         <div class="card">
-            <h2 style="font-family: 'Playfair Display'; color: var(--gold);">🍽️ Güncel Menü</h2>
+            <h3 style="color: var(--gold); margin-top: 0; font-family: 'Playfair Display';">➕ Yeni Ürün Ekle</h3>
+            <form action="/urun-ekle" method="POST" style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 15px; margin-top: 20px;">
+                <input type="text" name="urun_adi" placeholder="Ürün Adı (Örn: Iced Latte)" required>
+                <input type="number" step="0.01" name="fiyat" placeholder="Fiyat (₺)" required>
+                <button type="submit" class="btn-gold">MENÜYE EKLE</button>
+            </form>
+        </div>
+
+        <div class="card">
+            <h3 style="color: var(--gold); margin-top: 0; font-family: 'Playfair Display';">🍽️ Mevcut Ürünler</h3>
             <table>
                 <thead>
                     <tr>
                         <th>ID</th>
-                        <th>Ürün Adı</th>
-                        <th>Fiyat</th>
-                        <th>Açıklama</th>
+                        <th>ÜRÜN ADI</th>
+                        <th>FİYAT</th>
+                        <th style="text-align: right;">İŞLEM</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for u in urunler %}
                     <tr>
-                        <td style="color: var(--muted);">#{{ u.Urun_ID }}</td>
-
+                        <td style="color: var(--muted);">#{{ u.Urun_Id }}</td>
                         <td style="font-weight: 500;">{{ u.Urun_Adi }}</td>
-
-                        <td style="font-weight: bold; color: var(--gold);">₺{{ u.Fiyat }}</td>
-
-                        <td style="font-size: 13px; color: var(--text); opacity: 0.8;">{{ u.Aciklama }}</td>
+                        <td>
+                            <form action="/urun-guncelle/{{ u.Urun_Id }}" method="POST" style="display: flex; align-items: center; gap: 8px;">
+                                <span style="color: var(--muted);">₺</span>
+                                <input type="number" step="0.01" name="fiyat" value="{{ u.Fiyat }}" style="width: 80px; padding: 5px; background: #0d0d0b; color: var(--gold); border: 1px solid #333; border-radius: 4px; font-weight: bold;">
+                                <button type="submit" style="background: none; border: none; font-size: 18px; cursor: pointer;" title="Fiyatı Kaydet">💾</button>
+                            </form>
+                        </td>
+                        <td style="text-align: right;">
+                            <form action="/urun-sil/{{ u.Urun_Id }}" method="POST" onsubmit="return confirm('Bu ürünü menüden silmek istediğinize emin misiniz?');">
+                                <button type="submit" style="background: none; border: none; color: #c0453a; cursor: pointer; font-size: 12px; font-weight: bold;">✕ SİL</button>
+                            </form>
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -53,5 +99,4 @@
         </div>
     </main>
 </body>
-
 </html>

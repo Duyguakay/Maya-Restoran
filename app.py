@@ -2,11 +2,11 @@ import os
 from dotenv import load_dotenv
 from flask import Flask, render_template, request, redirect, url_for, flash
 import mysql.connector
-from datetime import datetime, timedelta
+from datetime import datetime
 
 load_dotenv(dotenv_path="pass.env")
 app = Flask(__name__)
-app.secret_key = "maya_ozel_anahtar"
+app.secret_key = os.getenv("SECRET_KEY", "maya_ozel_anahtar")
 
 def get_db():
     return mysql.connector.connect(
@@ -16,219 +16,199 @@ def get_db():
         database=os.getenv("DB_NAME", "RestoranDB")
     )
 
+# ================= 1. GENEL BAKIŞ VE REZERVASYON =================
 @app.route('/')
 def index():
     db = get_db()
     cursor = db.cursor(dictionary=True)
-    cursor.execute("SELECT * FROM MASA ORDER BY Masa_ID ASC")
+    cursor.execute("SELECT * FROM MASA ORDER BY Masa_Id ASC")
     masalar = cursor.fetchall()
+    
     simdi = datetime.now()
-    bugun_bas = simdi.replace(hour=0, minute=0, second=0)
-    bugun_bit = simdi.replace(hour=23, minute=59, second=59)
-    cursor.execute("SELECT Masa_ID, Tarih FROM REZERVASYON WHERE Tarih BETWEEN %s AND %s", (bugun_bas, bugun_bit))
-    gunluk_rezler = cursor.fetchall()
-    for m in masalar:
-        m['durum'] = 'bos'
-        for r in gunluk_rezler:
-            if r['Masa_ID'] == m['Masa_ID']:
-                if simdi >= r['Tarih'] - timedelta(hours=1) and simdi <= r['Tarih'] + timedelta(hours=2):
-                    m['durum'] = 'dolu'
-                elif r['Tarih'] > simdi:
-                    m['durum'] = 'rezerve'
-    cursor.close()
+    bugun_bas = simdi.replace(hour=0, minute=0, second=0, microsecond=0)
+    bugun_bit = simdi.replace(hour=23, minute=59, second=59, microsecond=0)
+    
+    cursor.execute("SELECT Masa_Id FROM REZERVASYON WHERE Tarih BETWEEN %s AND %s", (bugun_bas, bugun_bit))
+    dolu_masalar = [r['Masa_Id'] for r in cursor.fetchall()]
     db.close()
-    return render_template('index.html', masalar=masalar, sayfa='genel')
+    return render_template('index.html', masalar=masalar, gunluk_dolu_masalar=dolu_masalar)
 
-@app.route('/masalar')
-def masalar_listesi():
+@app.route('/rezervasyon-olustur', methods=['POST'])
+def rezervasyon_olustur():
+    ad, soyad, telefon = request.form.get('ad'), request.form.get('soyad'), request.form.get('telefon')
+    tarih, saat = request.form.get('tarih'), request.form.get('saat')
+    kisi_sayisi, masa_id = request.form.get('kisi_sayisi'), request.form.get('masa_id')
+    tarih_saat = f"{tarih} {saat}:00"
+    
     db = get_db()
-    cursor = db.cursor(dictionary=True)
-    cursor.execute("SELECT * FROM MASA ORDER BY Masa_ID ASC")
-    masalar = cursor.fetchall()
-    cursor.close()
-    db.close()
-    return render_template('masalar.html', masalar=masalar, sayfa='masa')
+    cursor = db.cursor()
+    try:
+        cursor.execute("INSERT INTO MUSTERI (Ad, Soyad, Telefon) VALUES (%s, %s, %s)", (ad, soyad, telefon))
+        musteri_id = cursor.lastrowid
+        cursor.execute("INSERT INTO REZERVASYON (Tarih, Kisi_Sayisi, Musteri_Id, Masa_Id) VALUES (%s, %s, %s, %s)", 
+                       (tarih_saat, kisi_sayisi, musteri_id, masa_id))
+        db.commit()
+        flash("Rezervasyon başarıyla oluşturuldu!", "success")
+    except Exception as e:
+        db.rollback()
+        flash(f"Rezervasyon Hatası: {str(e)}", "danger")
+    finally:
+        db.close()
+    return redirect(url_for('index'))
 
-
-
+# ================= 2. MENÜ & ÜRÜNLER =================
 @app.route('/menu')
 def menu_listesi():
     db = get_db()
     cursor = db.cursor(dictionary=True)
-    # Ürünleri ID sırasına göre çekiyoruz
-    cursor.execute("SELECT * FROM urun ORDER BY Urun_Id ASC")
+    cursor.execute("SELECT * FROM URUN ORDER BY Urun_Id DESC")
     urunler = cursor.fetchall()
-    cursor.close()
     db.close()
-    return render_template('menu.html', urunler=urunler, sayfa='menu')
+    return render_template('menu.html', urunler=urunler)
 
+@app.route('/urun-ekle', methods=['POST'])
+def urun_ekle():
+    ad = request.form.get('urun_adi')
+    fiyat = request.form.get('fiyat')
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+    try:
+        # AUTO_INCREMENT HATA ÇÖZÜMÜ: En büyük ID'yi bulup kendimiz 1 ekliyoruz.
+        cursor.execute("SELECT MAX(Urun_Id) as max_id FROM URUN")
+        sonuc = cursor.fetchone()
+        yeni_id = (sonuc['max_id'] or 0) + 1
+        
+        cursor.execute("INSERT INTO URUN (Urun_Id, Urun_Adi, Fiyat) VALUES (%s, %s, %s)", (yeni_id, ad, fiyat))
+        db.commit()
+        flash(f"'{ad}' menüye başarıyla eklendi!", "success")
+    except Exception as e:
+        db.rollback()
+        flash(f"Ürün eklenirken hata oluştu: {str(e)}", "danger")
+    finally:
+        db.close()
+    return redirect(url_for('menu_listesi'))
+
+@app.route('/urun-guncelle/<int:id>', methods=['POST'])
+def urun_guncelle(id):
+    yeni_fiyat = request.form.get('fiyat')
+    db = get_db()
+    cursor = db.cursor()
+    try:
+        cursor.execute("UPDATE URUN SET Fiyat = %s WHERE Urun_Id = %s", (yeni_fiyat, id))
+        db.commit()
+        flash("Ürün fiyatı güncellendi! (💾)", "success")
+    except Exception as e:
+        db.rollback()
+        flash("Fiyat güncellenemedi.", "danger")
+    finally:
+        db.close()
+    return redirect(url_for('menu_listesi'))
+
+@app.route('/urun-sil/<int:id>', methods=['POST'])
+def urun_sil(id):
+    db = get_db()
+    cursor = db.cursor()
+    try:
+        cursor.execute("DELETE FROM URUN WHERE Urun_Id = %s", (id,))
+        db.commit()
+        flash("Ürün başarıyla silindi!", "success")
+    except mysql.connector.Error as err:
+        db.rollback()
+        if err.errno == 1451:
+            flash("HATA: Bu ürün bir adisyonda kullanıldığı için silinemez!", "danger")
+        else:
+            flash(f"Silme hatası: {err}", "danger")
+    finally:
+        db.close()
+    return redirect(url_for('menu_listesi'))
+
+# ================= 3. SİPARİŞLER =================
 @app.route('/siparisler')
 def siparis_listesi():
     db = get_db()
     cursor = db.cursor(dictionary=True)
-    # Aktif siparişleri çek
-    cursor.execute("SELECT s.*, m.Konum FROM SIPARIS s JOIN MASA m ON s.Masa_Id = m.Masa_Id")
+    cursor.execute("SELECT Siparis_Id, Tutar as Toplam_Tutar, Masa_Id FROM SIPARIS")
     siparisler = cursor.fetchall()
-    # Ürünleri (Menüyü) çek - Seçim kutusu için
-    cursor.execute("SELECT * FROM urun ORDER BY Urun_Adi ASC")
-    urunler = cursor.fetchall()
-    cursor.close()
+    for s in siparisler:
+        cursor.execute("""
+            SELECT sd.Detay_Id, sd.Adet, sd.Ara_Toplam, u.Urun_Adi, u.Fiyat 
+            FROM SIPARIS_DETAY sd 
+            JOIN URUN u ON sd.Urun_Id = u.Urun_Id 
+            WHERE sd.Siparis_Id = %s
+        """, (s['Siparis_Id'],))
+        s['Kalemler'] = cursor.fetchall()
     db.close()
-    return render_template('siparisler.html', siparisler=siparisler, urunler=urunler, sayfa='siparis')
+    return render_template('siparisler.html', siparisler=siparisler)
 
-
-@app.route('/rezervasyon-olustur', methods=['POST'])
-def rezervasyon_olustur():
-    # 1. Form Verilerini Al
-    ad = request.form.get('ad')
-    soyad = request.form.get('soyad')
-    telefon = request.form.get('telefon')
-    tarih = request.form.get('tarih')
-    saat = request.form.get('saat')
-    kisi_sayisi = int(request.form.get('kisi_sayisi'))
-    masa_id = request.form.get('masa_id')
-
+@app.route('/siparis-adet-guncelle/<int:detay_id>', methods=['POST'])
+def siparis_adet_guncelle(detay_id):
+    yeni_adet = int(request.form.get('adet'))
     db = get_db()
     cursor = db.cursor(dictionary=True)
-
     try:
-        # 2. Kapasite Kontrolü Yap [cite: 16, 22]
-        cursor.execute("SELECT Kapasite FROM MASA WHERE Masa_ID = %s", (masa_id,))
-        masa = cursor.fetchone()
-
-        if not masa:
-            flash(f"Hata: {masa_id} numaralı masa bulunamadı!", "danger")
-            return redirect(url_for('index'))
-
-        # Karşılaştırma: Kişi sayısı > Kapasite mi? 
-        if kisi_sayisi > masa['Kapasite']:
-            flash(f"⚠️ Kapasite Yetersiz! Masa {masa_id} en fazla {masa['Kapasite']} kişiliktir. {kisi_sayisi} kişi için ek masa ayarlanmalı veya daha büyük bir masa seçilmelidir.", "danger")
-            return redirect(url_for('index'))
-
-        # 3. Müşteriyi Kaydet [cite: 6, 8, 9, 10, 11]
-        cursor.execute(
-            "INSERT INTO MUSTERI (Ad, Soyad, Telefon) VALUES (%s, %s, %s)",
-            (ad, soyad, telefon)
-        )
-        musteri_id = cursor.lastrowid # Yeni oluşan müşteri ID'sini al [cite: 18]
-
-        # 4. Rezervasyonu Kaydet [cite: 12, 14, 15]
-        tam_tarih = f"{tarih} {saat}:00"
-        cursor.execute(
-            "INSERT INTO REZERVASYON (Tarih, Kisi_Sayisi, Musteri_ID, Masa_ID) VALUES (%s, %s, %s, %s)",
-            (tam_tarih, kisi_sayisi, musteri_id, masa_id)
-        )
-
-        db.commit() # Veritabanına işle
-        flash(f"Başarılı! {ad} {soyad} için Masa {masa_id} rezerve edildi.", "success")
-
-    except Exception as e:
-        db.rollback() # Hata olursa işlemi geri al
-        flash(f"Sistem Hatası: {str(e)}", "danger")
+        cursor.execute("SELECT sd.Siparis_Id, u.Fiyat FROM SIPARIS_DETAY sd JOIN URUN u ON sd.Urun_Id = u.Urun_Id WHERE sd.Detay_Id = %s", (detay_id,))
+        bilgi = cursor.fetchone()
+        if bilgi:
+            yeni_ara_toplam = yeni_adet * bilgi['Fiyat']
+            cursor.execute("UPDATE SIPARIS_DETAY SET Adet = %s, Ara_Toplam = %s WHERE Detay_Id = %s", (yeni_adet, yeni_ara_toplam, detay_id))
+            cursor.execute("UPDATE SIPARIS SET Tutar = (SELECT SUM(Ara_Toplam) FROM SIPARIS_DETAY WHERE Siparis_Id = %s) WHERE Siparis_Id = %s", (bilgi['Siparis_Id'], bilgi['Siparis_Id']))
+            db.commit()
     finally:
-        cursor.close()
         db.close()
+    return redirect(url_for('siparis_listesi'))
 
-    return redirect(url_for('index'))
-
-
-@app.route('/kapasite-kontrol')
-def kapasite_kontrol():
-    masa_id = request.args.get('masa_id')
-    kisi = int(request.args.get('kisi', 0))
-    
-    db = get_db()
-    cursor = db.cursor(dictionary=True)
-    cursor.execute("SELECT Kapasite FROM MASA WHERE Masa_ID = %s", (masa_id,))
-    masa = cursor.fetchone()
-    cursor.close()
-    db.close()
-
-    if masa and kisi > masa['Kapasite']:
-        return {"uygun": False, "kapasite": masa['Kapasite']}
-    return {"uygun": True}
-
-
-# --- MÜŞTERİ VE REZERVASYON İŞLEMLERİ ---
-
+# ================= 4. MÜŞTERİLER (GÜNCELLENDİ) =================
 @app.route('/musteriler')
-def musteri_listesi():
+def musteriler_listesi():
     db = get_db()
     cursor = db.cursor(dictionary=True)
-    # Veritabanındaki sütun adlarına dikkat (Musteri_ID, Masa_ID)
-    query = """
-        SELECT M.Musteri_ID, M.Ad, M.Soyad, R.Tarih, R.Masa_ID 
-        FROM MUSTERI M
-        LEFT JOIN REZERVASYON R ON M.Musteri_ID = R.Musteri_ID
-        ORDER BY M.Musteri_ID DESC
-    """
-    cursor.execute(query)
+    cursor.execute("SELECT * FROM MUSTERI ORDER BY Musteri_Id DESC")
     musteriler = cursor.fetchall()
-    cursor.close()
     db.close()
     return render_template('musteri.html', musteriler=musteriler)
 
-@app.route('/rezervasyon_guncelle/<int:musteri_id>', methods=['POST'])
-def rezervasyon_guncelle(musteri_id):
-    tarih = request.form.get('tarih')
-    saat = request.form.get('saat')
-    masa_id = request.form.get('masa_id')
-    tam_tarih = f"{tarih} {saat}:00"
-    
+@app.route('/musteri-sil/<int:id>', methods=['POST'])
+def musteri_sil(id):
     db = get_db()
     cursor = db.cursor()
     try:
-        # Önce bu müşterinin rezervasyonu var mı bak
-        cursor.execute("SELECT Rezerve_ID FROM REZERVASYON WHERE Musteri_ID = %s", (musteri_id,))
-        rez = cursor.fetchone()
-
-        if rez:
-            # Varsa GÜNCELLE [cite: 12, 14, 15]
-            cursor.execute("""
-                UPDATE REZERVASYON 
-                SET Tarih = %s, Masa_ID = %s 
-                WHERE Musteri_ID = %s
-            """, (tam_tarih, masa_id, musteri_id))
-        else:
-            # Yoksa YENİ OLUŞTUR (Kişi sayısı varsayılan 2) [cite: 16]
-            cursor.execute("""
-                INSERT INTO REZERVASYON (Tarih, Masa_ID, Musteri_ID, Kisi_Sayisi) 
-                VALUES (%s, %s, %s, 2)
-            """, (tam_tarih, masa_id, musteri_id))
-            
+        cursor.execute("DELETE FROM REZERVASYON WHERE Musteri_Id = %s", (id,))
+        cursor.execute("DELETE FROM MUSTERI WHERE Musteri_Id = %s", (id,))
         db.commit()
-        flash("Veritabanı başarıyla güncellendi.", "success")
+        flash("Müşteri ve bağlı rezervasyonlar silindi!", "success")
     except Exception as e:
         db.rollback()
         flash(f"Hata: {str(e)}", "danger")
     finally:
-        cursor.close()
         db.close()
-    return redirect(url_for('musteri_listesi'))
+    return redirect(url_for('musteriler_listesi'))
 
-@app.route('/musteri_sil/<int:musteri_id>', methods=['POST'])
-def musteri_sil(musteri_id):
+@app.route('/rezervasyon-guncelle/<int:id>', methods=['POST'])
+def rezervasyon_guncelle(id):
+    tarih, saat, masa_id = request.form.get('tarih'), request.form.get('saat'), request.form.get('masa_id')
+    yeni_tarih = f"{tarih} {saat}:00"
     db = get_db()
     cursor = db.cursor()
     try:
-        # 1. Önce REZERVASYON silinmeli (Foreign Key engeline takılmamak için) [cite: 12]
-        cursor.execute("DELETE FROM REZERVASYON WHERE Musteri_ID = %s", (musteri_id,))
-        
-        # 2. Sonra MUSTERI silinmeli [cite: 6]
-        cursor.execute("DELETE FROM MUSTERI WHERE Musteri_ID = %s", (musteri_id,))
-        
+        cursor.execute("UPDATE REZERVASYON SET Tarih=%s, Masa_Id=%s WHERE Musteri_Id=%s", (yeni_tarih, masa_id, id))
         db.commit()
-        flash("Kayıtlar veritabanından tamamen silindi.", "success")
+        flash("Müşterinin rezervasyonu güncellendi!", "success")
     except Exception as e:
         db.rollback()
-        flash(f"Silme Hatası: {str(e)}", "danger")
+        flash(f"Hata: {str(e)}", "danger")
     finally:
-        cursor.close()
         db.close()
-    return redirect(url_for('musteri_listesi'))
+    return redirect(url_for('musteriler_listesi'))
 
-
-
+# ================= 5. MASALAR =================
+@app.route('/masalar')
+def masalar_listesi():
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM MASA ORDER BY Masa_Id ASC")
+    masalar = cursor.fetchall()
+    db.close()
+    return render_template('masalar.html', masalar=masalar)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, port=5000)

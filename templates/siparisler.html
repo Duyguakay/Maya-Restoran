@@ -1,107 +1,85 @@
 <!DOCTYPE html>
 <html lang="tr">
-
 <head>
     <meta charset="UTF-8">
-    <title>Siparişler | Maya</title>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=DM+Sans:wght@400;500&display=swap"
-        rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <title>Siparişler | MAYA</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
     <style>
-        .urun-select {
-            background: #0d0d0b;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: white;
-            padding: 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            width: 100%;
-            margin-bottom: 10px;
-        }
-
-        .adet-input {
-            background: #0d0d0b;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: white;
-            padding: 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            width: 60px;
-        }
-
-        .btn-ekle {
-            background: #c9a84c;
-            color: black;
-            border: none;
-            padding: 8px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 12px;
-            font-weight: bold;
-            width: 100%;
-            transition: 0.3s;
-        }
-
-        .btn-ekle:hover {
-            opacity: 0.8;
-        }
+        :root { --bg: #0d0d0b; --surface: #151512; --border: rgba(255, 255, 255, 0.07); --gold: #c9a84c; --text: #f0ece2; --muted: #8a8778; --radius: 12px; }
+        body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; }
+        .sidebar { width: 240px; background: var(--surface); height: 100vh; position: fixed; border-right: 1px solid var(--border); }
+        .nav-item { display: flex; align-items: center; gap: 10px; padding: 15px; color: var(--muted); text-decoration: none; }
+        .nav-item.active { color: var(--gold); background: rgba(201, 168, 76, 0.1); }
+        .main { flex: 1; margin-left: 240px; padding: 40px; }
+        .order-card { background: var(--surface); border: 1px solid var(--border); padding: 25px; border-radius: var(--radius); margin-bottom: 25px; }
+        .qty-input { width: 50px; background: #0d0d0b; border: 1px solid #333; color: var(--gold); text-align: center; padding: 5px; border-radius: 4px; }
+        .btn-update { background: none; border: none; color: var(--gold); cursor: pointer; font-size: 16px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th { text-align: left; color: var(--muted); padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+        td { padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
     </style>
 </head>
-
 <body>
     <aside class="sidebar">
-        <div class="logo" style="padding: 30px 25px;">
-            <div style="font-family: 'Playfair Display'; font-size: 24px; color: #c9a84c;">MAYA</div>
-            <div style="font-size: 10px; color: #8a8778; letter-spacing: 2px;">YÖNETİM</div>
-        </div>
+        <div style="padding: 30px; font-family: 'Playfair Display'; font-size: 24px; color: var(--gold);">MAYA</div>
         <nav>
-            <a href="/" class="nav-item {% if sayfa == 'genel' %}active{% endif %}">Genel Bakış</a>
-            <a href="/masalar" class="nav-item {% if sayfa == 'masa' %}active{% endif %}">Masalar</a>
-            <a href="/musteriler" class="nav-item {% if sayfa == 'musteri' %}active{% endif %}">Müşteriler</a>
-            <a href="/menu" class="nav-item {% if sayfa == 'menu' %}active{% endif %}">Menü / Ürünler</a>
-            <a href="/siparisler" class="nav-item {% if sayfa == 'siparis' %}active{% endif %}">Siparişler</a>
+            <a href="/" class="nav-item">📊 Genel Bakış</a>
+            <a href="/masalar" class="nav-item">🪑 Masalar</a>
+            <a href="/musteriler" class="nav-item">👥 Müşteriler</a>
+            <a href="/menu" class="nav-item">🍽️ Menü / Ürünler</a>
+            <a href="/siparisler" class="nav-item active">🧾 Siparişler</a>
         </nav>
     </aside>
-
-    <main class="main" style="flex: 1; margin-left: 240px; padding: 40px;">
-        <h2 style="font-family: 'Playfair Display'; color: #c9a84c; margin-bottom: 25px;">Aktif Adisyonlar</h2>
-        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
-
-            {% for s in siparisler %}
-            <div class="card"
-                style="background: #151512; border: 1px solid rgba(255,255,255,0.07); padding: 20px; border-radius: 12px;">
-                <div style="font-size: 11px; color: #8a8778;">ADİSYON NO: #S-{{ s.Siparis_Id }}</div>
-                <h3 style="color: #c9a84c; margin: 10px 0;">Masa {{ s.Masa_Id }} <span
-                        style="font-size: 12px; color:#8a8778;">({{ s.Konum }})</span></h3>
-
-                <div style="font-size: 28px; font-weight: bold; margin: 15px 0;">₺{{ s.Tutar }}</div>
-
-                <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.05); margin: 15px 0;">
-
-                <h4 style="font-size: 12px; color: #8a8778; margin-bottom: 10px;">Siparişe Ürün Ekle</h4>
-
-                <form action="/urune_ekle" method="POST" style="display: flex; flex-direction: column; gap: 8px;">
-                    <input type="hidden" name="siparis_id" value="{{ s.Siparis_Id }}">
-
-                    <select name="urun_id" class="urun-select" required>
-                        <option value="" disabled selected>Ürün Seçin...</option>
-                        {% for u in urunler %}
-                        <option value="{{ u.Urun_Id }}">{{ u.Urun_Adi }} - ₺{{ u.Fiyat }}</option>
-                        {% endfor %}
-                    </select>
-
-                    <div style="display: flex; gap: 8px;">
-                        <input type="number" name="adet" value="1" min="1" class="adet-input" required>
-                        <button type="submit" class="btn-ekle">+ EKLE</button>
-                    </div>
-                </form>
-
+    <main class="main">
+        <h1 style="font-family: 'Playfair Display'; color: var(--gold);">Aktif Siparişler</h1>
+        {% for s in siparisler %}
+        <div class="order-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 10px;">
+                <h3 style="color: var(--gold); margin: 0;">Masa {{ s.Masa_Id }}</h3>
+                <div style="font-size: 18px; font-weight: bold;">Toplam: ₺{{ s.Toplam_Tutar }}</div>
             </div>
-            {% endfor %}
-
+            <table>
+                <thead>
+                    <tr>
+                        <th>Ürün</th>
+                        <th>Adet</th>
+                        <th>Fiyat</th>
+                        <th>Ara Toplam</th>
+                        <th>İşlem</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for kalem in s.Kalemler %}
+                    <tr>
+                        <td>{{ kalem.Urun_Adi }}</td>
+                        <td>
+                            <form action="/siparis-adet-guncelle/{{ kalem.Detay_Id }}" method="POST" style="display: flex; align-items: center; gap: 5px;">
+                                <input type="number" name="adet" value="{{ kalem.Adet }}" min="1" class="qty-input">
+                                <button type="submit" class="btn-update">💾</button>
+                            </form>
+                        </td>
+                        <td>₺{{ kalem.Fiyat }}</td>
+                        <td>₺{{ kalem.Ara_Toplam }}</td>
+                        <td>
+                            <form action="/siparis-sil/{{ kalem.Detay_Id }}" method="POST">
+                                <button type="submit" style="background:none; border:none; color:#c0453a; cursor:pointer;">✕</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <form action="/siparis-urun-ekle/{{ s.Siparis_Id }}" method="POST" style="margin-top: 20px; display: flex; gap: 10px;">
+                <select name="urun_id" style="flex: 1; padding: 8px; background: #0d0d0b; color: white; border: 1px solid #333;">
+                    {% for urun in urunler %}
+                    <option value="{{ urun.Urun_Id }}">{{ urun.Urun_Adi }} (₺{{ urun.Fiyat }})</option>
+                    {% endfor %}
+                </select>
+                <input type="number" name="adet" value="1" min="1" class="qty-input">
+                <button type="submit" style="background: var(--gold); color: black; border: none; padding: 0 15px; border-radius: 4px; font-weight: bold; cursor: pointer;">+ EKLE</button>
+            </form>
         </div>
+        {% endfor %}
     </main>
 </body>
-
 </html>

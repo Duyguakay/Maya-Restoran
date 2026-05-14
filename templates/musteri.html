@@ -1,53 +1,30 @@
 <!DOCTYPE html>
 <html lang="tr">
-
 <head>
     <meta charset="UTF-8">
-    <title>Müşteriler | Maya</title>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=DM+Sans:wght@400;500&display=swap"
-        rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <title>Müşteriler | MAYA</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
     <style>
-        .upd-input {
-            background: #0d0d0b;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: white;
-            padding: 6px;
-            border-radius: 4px;
-            font-size: 12px;
-            width: 100px;
-        }
-
-        .btn-guncelle {
-            background: #c9a84c;
-            color: black;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 11px;
-            font-weight: bold;
-        }
-
-        .btn-sil {
-            background: #c0453a;
-            color: white;
-            border: none;
-            padding: 6px 10px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 11px;
-        }
+        :root { --bg: #0d0d0b; --surface: #151512; --border: rgba(255,255,255,0.07); --gold: #c9a84c; --text: #f0ece2; --muted: #8a8778; --danger: #e74c3c; --radius: 12px; }
+        body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; }
+        .sidebar { width: 240px; background: var(--surface); height: 100vh; position: fixed; border-right: 1px solid var(--border); }
+        .nav-item { display: flex; align-items: center; gap: 10px; padding: 15px; color: var(--muted); text-decoration: none; transition: 0.2s; }
+        .nav-item.active { color: var(--gold); background: rgba(201,168,76,0.1); }
+        .main { flex: 1; margin-left: 240px; padding: 40px; }
+        .card { background: var(--surface); padding: 30px; border-radius: var(--radius); border: 1px solid var(--border); }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th { text-align: left; padding: 15px; color: var(--muted); font-size: 11px; text-transform: uppercase; border-bottom: 1px solid var(--border); }
+        td { padding: 15px; border-bottom: 1px solid var(--border); font-size: 14px; vertical-align: middle; }
+        
+        .upd-input { background: #0d0d0b; border: 1px solid var(--border); color: white; padding: 8px; border-radius: 4px; font-size: 11px; width: 90px; }
+        .btn-sil { background: transparent; color: var(--danger); border: 1px solid var(--danger); padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: bold; }
+        .btn-guncelle { background: var(--gold); color: black; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: bold; }
+        .alert { padding: 15px; border-radius: 8px; margin-bottom: 20px; background: rgba(201,168,76,0.1); color: var(--gold); border: 1px solid var(--gold); }
     </style>
 </head>
-
 <body>
     <aside class="sidebar">
-        <div class="logo">
-            <div class="logo-name">MAYA</div>
-            <div class="logo-sub">Yönetim Sistemi</div>
-        </div>
+        <div style="padding: 30px; font-family: 'Playfair Display'; font-size: 28px; color: var(--gold);">MAYA</div>
         <nav>
             <a href="/" class="nav-item">📊 Genel Bakış</a>
             <a href="/masalar" class="nav-item">🪑 Masalar</a>
@@ -56,49 +33,42 @@
             <a href="/siparisler" class="nav-item">🧾 Siparişler</a>
         </nav>
     </aside>
+    <main class="main">
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            {% for message in messages %}
+              <div class="alert">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
 
-    <main class="main" style="flex: 1; margin-left: 240px; padding: 40px;">
-        <div class="card"
-            style="background: #151512; border: 1px solid rgba(255,255,255,0.07); padding: 25px; border-radius: 12px;">
-            <h2 style="font-family: 'Playfair Display'; color: #c9a84c; margin-bottom: 25px;">Müşteri Yönetimi</h2>
-
-            <table style="width: 100%; border-collapse: collapse;">
+        <div class="card">
+            <h2 style="font-family: 'Playfair Display'; color: var(--gold); margin: 0;">👥 Müşteri ve Rezervasyon Yönetimi</h2>
+            <table>
                 <thead>
-                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
-                        <th style="padding: 15px; font-size: 11px; color: #8a8778; text-align: left;">ID</th>
-                        <th style="padding: 15px; font-size: 11px; color: #8a8778; text-align: left;">AD SOYAD</th>
-                        <th style="padding: 15px; font-size: 11px; color: #8a8778; text-align: left;">GÜNCELLE (Tarih |
-                            Saat | Masa)</th>
-                        <th style="padding: 15px; font-size: 11px; color: #8a8778; text-align: left;">İŞLEM</th>
+                    <tr>
+                        <th>ID</th>
+                        <th>AD SOYAD</th>
+                        <th>HIZLI GÜNCELLE (Tarih - Saat - Masa)</th>
+                        <th>İŞLEM</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for m in musteriler %}
-                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.07);">
-                        <td style="padding: 15px; color: #8a8778;">#{{ loop.index }}</td>
-
-                        <td style="padding: 15px;">{{ m.Ad }} {{ m.Soyad }}</td>
-
-                        <td style="padding: 15px;">
-                            <form action="/rezervasyon_guncelle/{{ m.Musteri_ID }}" method="POST"
-                                style="display: flex; gap: 8px;">
-                                <input type="date" name="tarih" class="upd-input"
-                                    value="{{ m.Tarih.strftime('%Y-%m-%d') if m.Tarih else '' }}" required>
-
-                                <input type="time" name="saat" class="upd-input" style="width: 70px;"
-                                    value="{{ m.Tarih.strftime('%H:%M') if m.Tarih else '' }}" required>
-
-                                <input type="number" name="masa_id" placeholder="Masa" class="upd-input"
-                                    style="width: 50px;" value="{{ m.Masa_ID if m.Masa_ID else '' }}" required>
-
+                    <tr>
+                        <td style="color: var(--muted);">#M-{{ m.Musteri_Id }}</td>
+                        <td style="font-weight: 500;">{{ m.Ad }} {{ m.Soyad }}</td>
+                        <td>
+                            <form action="/rezervasyon-guncelle/{{ m.Musteri_Id }}" method="POST" style="display: flex; gap: 5px;">
+                                <input type="date" name="tarih" class="upd-input" required>
+                                <input type="time" name="saat" class="upd-input" required>
+                                <input type="number" name="masa_id" placeholder="Masa No" class="upd-input" style="width: 60px;" required>
                                 <button type="submit" class="btn-guncelle">KAYDET</button>
                             </form>
                         </td>
-
-                        <td style="padding: 15px;">
-                            <form action="/musteri_sil/{{ m.Musteri_ID }}" method="POST">
-                                <button type="submit" class="btn-sil"
-                                    onclick="return confirm('Müşteriyi ve rezervasyonunu silmek istediğinize emin misiniz?')">SİL</button>
+                        <td>
+                            <form action="/musteri-sil/{{ m.Musteri_Id }}" method="POST" style="display:inline;">
+                                <button type="submit" class="btn-sil" onclick="return confirm('Müşteriyi ve bağlı rezervasyonları silmek istediğinize emin misiniz?')">✕ SİL</button>
                             </form>
                         </td>
                     </tr>
@@ -108,5 +78,4 @@
         </div>
     </main>
 </body>
-
 </html>
