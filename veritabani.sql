@@ -1,0 +1,58 @@
+-- Maya Restoran Veritabanı Kurulum Dosyası
+-- Hazırlayanlar: Zeynep Duygu Akay / Çiğdem Bircan [cite: 4]
+
+CREATE DATABASE IF NOT EXISTS RestoranDB;
+USE RestoranDB;
+
+-- 1. MÜŞTERİ TABLOSU [cite: 6-11]
+CREATE TABLE MUSTERI (
+    Musteri_Id INT PRIMARY KEY AUTO_INCREMENT,
+    Ad VARCHAR(50) NOT NULL,
+    Soyad VARCHAR(50) NOT NULL,
+    Telefon VARCHAR(15)
+);
+
+-- 2. MASA TABLOSU [cite: 19-22]
+CREATE TABLE MASA (
+    Masa_Id INT PRIMARY KEY,
+    Konum VARCHAR(50),
+    Kapasite INT NOT NULL
+);
+
+-- 3. REZERVASYON TABLOSU [cite: 12-18]
+CREATE TABLE REZERVASYON (
+    Rezerve_Id INT PRIMARY KEY AUTO_INCREMENT,
+    Tarih DATETIME NOT NULL,
+    Kisi_Sayisi INT NOT NULL,
+    Musteri_Id INT,
+    Masa_Id INT,
+    FOREIGN KEY (Musteri_Id) REFERENCES MUSTERI(Musteri_Id) ON DELETE CASCADE,
+    FOREIGN KEY (Masa_Id) REFERENCES MASA(Masa_Id)
+);
+
+-- 4. ÜRÜN TABLOSU [cite: 23-29]
+CREATE TABLE URUN (
+    Urun_Id INT PRIMARY KEY AUTO_INCREMENT,
+    Urun_Adi VARCHAR(100) NOT NULL,
+    Aciklama TEXT,
+    Fiyat DECIMAL(10,2) NOT NULL
+);
+
+-- 5. SİPARİŞ TABLOSU [cite: 30-34]
+CREATE TABLE SIPARIS (
+    Siparis_Id INT PRIMARY KEY AUTO_INCREMENT,
+    Tutar DECIMAL(10,2) DEFAULT 0.00,
+    Masa_Id INT,
+    FOREIGN KEY (Masa_Id) REFERENCES MASA(Masa_Id)
+);
+
+-- 6. SİPARİŞ DETAY TABLOSU [cite: 35-40]
+CREATE TABLE SIPARIS_DETAY (
+    Detay_Id INT PRIMARY KEY AUTO_INCREMENT,
+    Siparis_Id INT,
+    Urun_Id INT,
+    Adet INT NOT NULL,
+    Ara_Toplam DECIMAL(10,2),
+    FOREIGN KEY (Siparis_Id) REFERENCES SIPARIS(Siparis_Id) ON DELETE CASCADE,
+    FOREIGN KEY (Urun_Id) REFERENCES URUN(Urun_Id)
+);

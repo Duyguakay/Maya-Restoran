@@ -1,339 +1,61 @@
 <!DOCTYPE html>
 <html lang="tr">
-
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Maya Yönetim Sistemi</title>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500&display=swap"
-        rel="stylesheet">
-    <link rel="stylesheet" href="../static/style.css    ">
+    <title>MAYA | Yönetim</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../static/style.css">
 </head>
-
 <body>
-
-    <!-- SIDEBAR -->
     <aside class="sidebar">
-        <div class="logo">
-            <div class="logo-name">MAYA</div>
-            <div class="logo-sub">Yönetim Sistemi</div>
+        <div class="logo" style="padding: 30px 25px;">
+            <div style="font-family: 'Playfair Display'; font-size: 24px; color: #c9a84c;">MAYA</div>
+            <div style="font-size: 10px; color: #8a8778; letter-spacing: 2px;">SİSTEM</div>
         </div>
         <nav class="nav">
-            <div class="nav-section">Ana Menü</div>
-            <div class="nav-item active">
-                <span class="nav-icon">📊</span> Genel Bakış
-            </div>
-            <a href="/masalar" style="text-decoration: none;">
-                <div class="nav-item {% if sayfa == 'masa' %}active{% endif %}">
-                    <span class="nav-icon">🪑</span> Masalar
-                </div>
-            </a>
-            <div class="nav-item">
-                <span class="nav-icon">🗓️</span> Rezervasyonlar
-                <span class="nav-badge">3</span>
-            </div>
-            <div class="nav-item">
-                <span class="nav-icon">🧾</span> Siparişler
-                <span class="nav-badge">5</span>
-            </div>
-            <div class="nav-section">Yönetim</div>
-            <div class="nav-item">
-                <span class="nav-icon">🍽️</span> Menü / Ürünler
-            </div>
-            <a href="/musteriler" style="text-decoration: none;">
-                <div class="nav-item">
-                    <span class="nav-icon">👥</span> Müşteriler
-                </div>
-            </a>
-            <div class="nav-item">
-                <span class="nav-icon">📈</span> Raporlar
-            </div>
-            <div class="nav-section">Sistem</div>
-            <div class="nav-item">
-                <span class="nav-icon">⚙️</span> Ayarlar
-            </div>
+            <a href="/" class="nav-item active">📊 Genel Bakış</a>
+            <a href="/masalar" class="nav-item">🪑 Masalar</a>
+            <a href="/musteriler" class="nav-item">👥 Müşteriler</a>
+            <a href="/menu" class="nav-item">🍽️ Menü / Ürünler</a>
+            <a href="/siparisler" class="nav-item">🧾 Siparişler</a>
         </nav>
     </aside>
 
-    <!-- MAIN -->
-    <main class="main">
-        <div class="topbar">
-            <div class="page-title">Genel Bakış</div>
-            <div class="topbar-right">
-                <div class="date-badge">Bugün</div>
-                <div class="avatar">🐶</div>
+    <main class="main" style="margin-left: 240px; padding: 40px; width: 100%;">
+        <h1 style="font-family: 'Playfair Display'; color: #c9a84c; text-align: center;">MAYA RESTORAN</h1>
+        
+        <div class="card" style="background: #151512; padding: 30px; border-radius: 12px; margin-top: 30px;">
+            <h3 style="color: #c9a84c; margin-top: 0;">Masa Durumu</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px;">
+                {% for m in masalar %}
+                <div class="table-slot {{ m.durum }}" style="padding: 20px; border-radius: 12px; text-align: center; border: 1px solid rgba(255,255,255,0.1);">
+                    <div style="font-size: 22px; font-weight: bold; margin-bottom: 5px;">Masa {{ m.Masa_Id }}</div>
+                    <div style="font-size: 11px; opacity: 0.7; margin-bottom: 8px;">{{ m.Konum }}</div>
+                    
+                    {% if m.durum == 'dolu' %}
+                        <div style="font-size: 10px; font-weight: bold; letter-spacing: 1px;">● DOLU</div>
+                    {% elif m.durum == 'rezerve' %}
+                        <div style="font-size: 10px; font-weight: bold; letter-spacing: 1px;">● REZERVE</div>
+                    {% else %}
+                        <div style="font-size: 10px; letter-spacing: 1px;">BOŞ</div>
+                    {% endif %}
+                </div>
+                {% endfor %}
             </div>
         </div>
 
-        <div class="content">
-
-            <!-- STAT CARDS -->
-            <div class="brand-header">
-                <div class="brand-line"></div>
-                <div class="brand-content">
-                    <span class="brand-icon">🐾</span>
-                    <h1 class="brand-title">MAYA RESTORAN</h1>
-                    <span class="brand-icon">🐾</span>
-                </div>
-                <div class="brand-subtitle">Gastronomi & Sanatın Buluşma Noktası</div>
-                <div class="brand-line"></div>
-            </div>
-
-            <!-- MASA HARİTASI -->
-            <div class="tables-map">
-                <div class="section-title">
-                    Masa Durumu <span>— Canlı Salon Görünümü</span>
-                </div>
-                <div class="legend">
-                    <div><span class="legend-dot" style="background:var(--muted);"></span>Boş</div>
-                    <div><span class="legend-dot" style="background:var(--gold);"></span>Dolu (Şu an)</div>
-                    <div><span class="legend-dot" style="background:var(--success);"></span>Rezerveli (Bugün)</div>
-                </div>
-
-                <div class="tables-grid">
-                    {% for m in masalar %}
-                    <div class="table-slot {{ m.durum }}">
-                        <div class="table-no">{{ m.Masa_ID }}</div>
-                        <div class="table-cap">{{ m.Kapasite }} Kişi</div>
-                        <div class="table-loc">{{ m.Konum }}</div>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-
-            <!-- TWO COL: Rezervasyonlar + Hızlı Rezervasyon -->
-            <div class="two-col">
-                <div class="data-table">
-                    <div class="data-table-header">
-                        <div class="data-table-title">Bugünkü Rezervasyonlar</div>
-                        <button class="btn-sm">Tümünü Gör</button>
-                    </div>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Müşteri</th>
-                                <th>Saat</th>
-                                <th>Kişi</th>
-                                <th>Masa</th>
-                                <th>Durum</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td style="color:var(--muted)">R-041</td>
-                                <td>Ayşe Kaya</td>
-                                <td>13:00</td>
-                                <td>4</td>
-                                <td><span class="badge badge-green">M-3</span></td>
-                                <td><span class="badge badge-green">Onaylı</span></td>
-                            </tr>
-                            <tr>
-                                <td style="color:var(--muted)">R-042</td>
-                                <td>Mehmet Demir</td>
-                                <td>14:30</td>
-                                <td>2</td>
-                                <td><span class="badge badge-green">M-6</span></td>
-                                <td><span class="badge badge-green">Onaylı</span></td>
-                            </tr>
-                            <tr>
-                                <td style="color:var(--muted)">R-043</td>
-                                <td>Selin Arslan</td>
-                                <td>19:00</td>
-                                <td>8</td>
-                                <td><span class="badge badge-green">M-11</span></td>
-                                <td><span class="badge badge-gold">Bekliyor</span></td>
-                            </tr>
-                            <tr>
-                                <td style="color:var(--muted)">R-044</td>
-                                <td>Can Yıldız</td>
-                                <td>20:30</td>
-                                <td>5</td>
-                                <td>—</td>
-                                <td><span class="badge badge-red">Atanmadı</span></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- REZERVASYON FORMU -->
-                <form action="/rezervasyon-yap" method="POST">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label">Ad</label>
-                            <input class="form-input" type="text" name="ad" placeholder="Ad" required>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Soyad</label>
-                            <input class="form-input" type="text" name="soyad" placeholder="Soyad" required>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label">Telefon</label>
-                            <input class="form-input" type="text" name="telefon" placeholder="0xxx xxx xx xx" required>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Kişi Sayısı</label>
-                            <input class="form-input" type="number" name="kisi_sayisi" placeholder="2" min="1" required>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label">Tarih & Saat</label>
-                            <input class="form-input" type="datetime-local" name="tarih_saat" required>
-                        </div>
-                    </div>
-                    <button type="submit" class="btn-primary">Rezervasyon Oluştur</button>
-                </form>
-            </div>
-
-            <!-- MENÜ ÜRÜNLERİ -->
-            <div class="menu-grid">
-                <div class="section-title">Popüler Ürünler <span>— Bugünün Çok Sipariş Edilenleri</span></div>
-                <div class="menu-items">
-                    <div class="menu-item">
-                        <div class="menu-item-emoji">🥩</div>
-                        <div class="menu-item-name">Kuzu Şiş</div>
-                        <div class="menu-item-desc">Közde pişirilmiş, baharatlı kuzu eti</div>
-                        <div class="menu-item-price">₺320</div>
-                        <div class="menu-item-cat">Ana Yemek</div>
-                    </div>
-                    <div class="menu-item">
-                        <div class="menu-item-emoji">🥗</div>
-                        <div class="menu-item-name">Akdeniz Salatası</div>
-                        <div class="menu-item-desc">Taze sebzeler, zeytin, peynir</div>
-                        <div class="menu-item-price">₺145</div>
-                        <div class="menu-item-cat">Başlangıç</div>
-                    </div>
-                    <div class="menu-item">
-                        <div class="menu-item-emoji">🍤</div>
-                        <div class="menu-item-name">Karides Güveç</div>
-                        <div class="menu-item-desc">Tereyağlı, sarımsaklı deniz ürünü</div>
-                        <div class="menu-item-price">₺280</div>
-                        <div class="menu-item-cat">Ana Yemek</div>
-                    </div>
-                    <div class="menu-item">
-                        <div class="menu-item-emoji">🍮</div>
-                        <div class="menu-item-name">Kazandibi</div>
-                        <div class="menu-item-desc">Klasik Türk tatlısı, karamelize</div>
-                        <div class="menu-item-price">₺95</div>
-                        <div class="menu-item-cat">Tatlı</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- SON SİPARİŞLER + MÜŞTERİLER -->
-            <div class="two-col">
-                <div class="data-table">
-                    <div class="data-table-header">
-                        <div class="data-table-title">Açık Siparişler</div>
-                        <button class="btn-sm">Detay</button>
-                    </div>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Sipariş No</th>
-                                <th>Masa</th>
-                                <th>Ürün Sayısı</th>
-                                <th>Tutar</th>
-                                <th>Durum</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td style="color:var(--muted)">S-201</td>
-                                <td>Masa 1</td>
-                                <td>3 ürün</td>
-                                <td class="order-total">₺755</td>
-                                <td><span class="badge badge-gold">Hazırlanıyor</span></td>
-                            </tr>
-                            <tr>
-                                <td style="color:var(--muted)">S-202</td>
-                                <td>Masa 5</td>
-                                <td>7 ürün</td>
-                                <td class="order-total">₺1.820</td>
-                                <td><span class="badge badge-green">Servis Edildi</span></td>
-                            </tr>
-                            <tr>
-                                <td style="color:var(--muted)">S-203</td>
-                                <td>Masa 8</td>
-                                <td>2 ürün</td>
-                                <td class="order-total">₺340</td>
-                                <td><span class="badge badge-gold">Bekleniyor</span></td>
-                            </tr>
-                            <tr>
-                                <td style="color:var(--muted)">S-204</td>
-                                <td>Masa 10</td>
-                                <td>4 ürün</td>
-                                <td class="order-total">₺960</td>
-                                <td><span class="badge badge-green">Servis Edildi</span></td>
-                            </tr>
-                            <tr>
-                                <td style="color:var(--muted)">S-205</td>
-                                <td>Masa 1</td>
-                                <td>1 ürün</td>
-                                <td class="order-total">₺145</td>
-                                <td><span class="badge badge-red">İptal</span></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <div class="data-table">
-                    <div class="data-table-header">
-                        <div class="data-table-title">Son Müşteriler</div>
-                        <button class="btn-sm">Tümü</button>
-                    </div>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Ad Soyad</th>
-                                <th>Telefon</th>
-                                <th>Rezerv.</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td style="color:var(--muted)">M-024</td>
-                                <td>Ayşe Kaya</td>
-                                <td>0532 111 22 33</td>
-                                <td><span class="badge badge-green">2</span></td>
-                            </tr>
-                            <tr>
-                                <td style="color:var(--muted)">M-025</td>
-                                <td>Mehmet Demir</td>
-                                <td>0541 444 55 66</td>
-                                <td><span class="badge badge-green">1</span></td>
-                            </tr>
-                            <tr>
-                                <td style="color:var(--muted)">M-026</td>
-                                <td>Selin Arslan</td>
-                                <td>0555 777 88 99</td>
-                                <td><span class="badge badge-gold">0</span></td>
-                            </tr>
-                            <tr>
-                                <td style="color:var(--muted)">M-027</td>
-                                <td>Can Yıldız</td>
-                                <td>0505 123 45 67</td>
-                                <td><span class="badge badge-green">3</span></td>
-                            </tr>
-                            <tr>
-                                <td style="color:var(--muted)">M-028</td>
-                                <td>Elif Şahin</td>
-                                <td>0542 999 00 11</td>
-                                <td><span class="badge badge-green">1</span></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
+        <div class="card" style="background: #151512; padding: 30px; border-radius: 12px; margin-top: 20px;">
+            <h3 style="color: #c9a84c;">Hızlı Rezervasyon</h3>
+            <form action="/rezervasyon-olustur" method="POST" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;">
+                <input type="text" name="ad" placeholder="Ad" required style="padding: 12px; background: #0d0d0b; border: 1px solid #333; color: white; border-radius: 5px;">
+                <input type="text" name="soyad" placeholder="Soyad" required style="padding: 12px; background: #0d0d0b; border: 1px solid #333; color: white; border-radius: 5px;">
+                <input type="text" name="telefon" placeholder="Telefon" required style="padding: 12px; background: #0d0d0b; border: 1px solid #333; color: white; border-radius: 5px;">
+                <input type="date" name="tarih" required style="padding: 12px; background: #0d0d0b; border: 1px solid #333; color: white; border-radius: 5px;">
+                <input type="time" name="saat" required style="padding: 12px; background: #0d0d0b; border: 1px solid #333; color: white; border-radius: 5px;">
+                <input type="number" name="masa_id" placeholder="Masa No" required style="padding: 12px; background: #0d0d0b; border: 1px solid #333; color: white; border-radius: 5px;">
+                <button type="submit" style="grid-column: span 3; background: #c9a84c; color: black; border: none; padding: 15px; border-radius: 5px; font-weight: bold; cursor: pointer;">Kaydet</button>
+            </form>
         </div>
     </main>
-
 </body>
-
 </html>
